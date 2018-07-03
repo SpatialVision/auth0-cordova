@@ -200,19 +200,60 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
     callback = function() {};
   }
 
-  var logoutUrl = this.client.buildLogoutUrl(parameters);
+  var logout_options = Object.assign({}, parameters, {
+    returnTo: this.client.redirectUri
+  });
+  var logoutUrl = this.client.buildLogoutUrl(logout_options);
 
   getAgent(function (err, agent) {
     if (err != null) {
       return callback(err);
     }
 
-    agent.open(logoutUrl, function (err, unused) {
-      callback(err);
-      // This 2500ms delay strikes a balance between allowing the page to perform its logout,
-      // user patience, and not knowing how that page
-      // will emit an event saying that the logout is complete.
-      setTimeout(agent.close, 2500);
+    agent.open(logoutUrl, function (error, result) {
+      if (error != null) {
+        session.clean();
+        return callback(error);
+      }
+
+      if (result.event === 'closed') {
+        var handleClose = function () {
+          if (session.isClosing) {
+            session.clean();
+            return callback(new Error('user canceled'));
+          }
+        };
+
+        session.closing();
+        if (getOS() === 'ios') {
+          handleClose();
+        } else {
+          setTimeout(handleClose, closingDelayMs);
+          return;
+        }
+      }
+
+      if (result.event !== 'loaded') {
+        // Ignore any other events.
+        return;
+      }
+      session.start(function (sessionError, redirectUrl) {
+        if (sessionError != null) {
+          callback(sessionError);
+          return true;
+        }
+
+        if (redirectUrl.indexOf(redirectUri) === -1) {
+          return false;
+        }
+
+        if (!redirectUrl || typeof redirectUrl !== 'string') {
+          callback(new Error('url must be a string'));
+          return true;
+        }
+
+        agent.close();
+      })
     });
   });
 };
