@@ -243,10 +243,6 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
           return true;
         }
 
-        if (redirectUrl.indexOf(redirectUri) === -1) {
-          return false;
-        }
-
         if (!redirectUrl || typeof redirectUrl !== 'string') {
           callback(new Error('url must be a string'));
           return true;
