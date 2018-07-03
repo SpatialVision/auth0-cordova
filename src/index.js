@@ -249,6 +249,8 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
         }
 
         agent.close();
+        
+        return callback(null);
       })
     });
   });
