@@ -185,9 +185,8 @@ CordovaAuth.onRedirectUri = function (url) {
  *
  * - If the client_id parameter is included, the returnTo URL must be listed in the Allowed Logout URLs set at the client level (see Setting Allowed Logout URLs at the App Level).
  * - If the client_id parameter is NOT included, the returnTo URL must be listed in the Allowed Logout URLs set at the account level (see Setting Allowed Logout URLs at the Account Level).
- * - This will always be a federated logout.
  *
- * @method federatedLogout
+ * @method logout
  * @param {Object} options
  * @param {String} [options.clientID] identifier of your client
  * @param {String} [options.returnTo] URL to be redirected after the logout
@@ -201,7 +200,7 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
   }
 
   var logout_options = Object.assign({}, parameters, {
-    returnTo: this.redirectUri
+    returnTo: this.client.redirectUri
   });
   var logoutUrl = this.client.buildLogoutUrl(logout_options);
 
@@ -233,26 +232,9 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
         }
       }
 
-      if (result.event !== 'loaded') {
-        // Ignore any other events.
-        return;
-      }
-      session.start(function (sessionError, redirectUrl) {
-        if (sessionError != null) {
-          callback(sessionError);
-          return true;
-        }
-
-        if (!redirectUrl || typeof redirectUrl !== 'string') {
-          callback(new Error('url must be a string'));
-          return true;
-        }
-
-        agent.close();
-        
-        return callback(null);
-      })
-    });
+      setTimeout(agent.close, 2500);
+      return callback(null);
+    })
   });
 };
 
