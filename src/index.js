@@ -201,7 +201,7 @@ CordovaAuth.prototype.logout = function(parameters, callback) {
   }
 
   var logout_options = Object.assign({}, parameters, {
-    returnTo: this.client.redirectUri
+    returnTo: this.redirectUri
   });
   var logoutUrl = this.client.buildLogoutUrl(logout_options);
 
