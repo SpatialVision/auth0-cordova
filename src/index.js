@@ -138,6 +138,7 @@ CordovaAuth.prototype.authorize = function (parameters, callback) {
         var response = parse(redirectUrl, true).query;
         if (response.error) {
           callback(new Error(response.error_description || response.error));
+          agent.close();
           return true;
         }
 
